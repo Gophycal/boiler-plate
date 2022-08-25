@@ -47,7 +47,7 @@ app.post('/register', (req, res) => {
   });
 });
 
-app.post('./login', (req, res) => {
+app.post('/login', (req, res) => {
   //Finding email requested from database
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
@@ -59,11 +59,14 @@ app.post('./login', (req, res) => {
 
     //Confirming whether the password is same with the password in database
     user.comparePassword(req.body.password, (err, isMatch) => {
+      console.log('err : ', err);
       if (!isMatch)
         return res.json({ loginSuccess: false, message: 'Invalid password' });
 
       //Creating a token
       user.genToken((err, user) => {
+        console.log('genToken is working');
+
         if (err) return res.status(400).send(err);
 
         //Storing a token into cookie or local storage

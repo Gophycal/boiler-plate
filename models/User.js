@@ -54,8 +54,13 @@ userSchema.pre('save', function (next) {
 });
 
 userSchema.methods.comparePassword = function (plainPassword, cb) {
-  bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
-    if (err) return cb(err), cb(null, isMatch);
+  var hashPassword = this.password;
+  bcrypt.compare(plainPassword, hashPassword, function (err, result) {
+    if (err) {
+      return cb(err);
+    } else {
+      return cb(null, result);
+    }
   });
 };
 
@@ -64,8 +69,6 @@ userSchema.methods.genToken = function (cb) {
 
   //Creating a token through jsonwebtoken
   var token = jwt.sign(user._id.toHexString(), 'secretToken');
-
-  // user._id + 'secretTocken' = token
 
   user.token = token;
   user.save(function (err, user) {
