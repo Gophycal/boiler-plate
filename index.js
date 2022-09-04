@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const { User } = require('./models/User');
+const { auth } = require('./middleware/auth');
 
 const config = require('./config/key');
 
@@ -33,7 +34,7 @@ app.use(bodyParser.json());
 
 app.use(cookieParser());
 
-app.post('/register', (req, res) => {
+app.post('/api/users/register', (req, res) => {
   // After fetching some information from client to sign up
   // give database that information.
 
@@ -47,7 +48,7 @@ app.post('/register', (req, res) => {
   });
 });
 
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
   //Finding email requested from database
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
@@ -59,14 +60,11 @@ app.post('/login', (req, res) => {
 
     //Confirming whether the password is same with the password in database
     user.comparePassword(req.body.password, (err, isMatch) => {
-      console.log('err : ', err);
       if (!isMatch)
         return res.json({ loginSuccess: false, message: 'Invalid password' });
 
       //Creating a token
       user.genToken((err, user) => {
-        console.log('genToken is working');
-
         if (err) return res.status(400).send(err);
 
         //Storing a token into cookie or local storage
@@ -75,6 +73,28 @@ app.post('/login', (req, res) => {
           .status(200)
           .json({ loginSuccess: true, userId: user._id });
       });
+    });
+  });
+});
+
+app.get('/api/users/auth', auth, (req, res) => {
+  res.status(200).json({
+    _id: req.user._id,
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image,
+  });
+});
+
+app.get('/api/users/logout', auth, (req, res) => {
+  User.findOneAndUpdate({ _id: req.user._id }, { token: '' }, (err, user) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).send({
+      success: true,
     });
   });
 });
