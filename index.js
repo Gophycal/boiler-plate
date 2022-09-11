@@ -3,7 +3,7 @@ const express = require('express');
 
 // mk new app through express function (or a function of express).
 const app = express();
-const port = 3000;
+const port = 5000;
 
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -33,6 +33,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(cookieParser());
+
+app.get('/api/hello', (req, res) => res.send('안녕 만나서 반가워!'));
 
 app.post('/api/users/register', (req, res) => {
   // After fetching some information from client to sign up
